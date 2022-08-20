@@ -55,6 +55,23 @@ pub trait DirectedGraph: Sync {
 
 pub trait DirectedGraphNew: DirectedGraph + Sized {
     fn new_disconnected(nnodes: usize) -> Self;
+
+    fn gen_seo_er<R: Rng>(nnodes: u32, p: f64, rng: &mut R) -> Self {
+        let mut g = Self::new_disconnected(nnodes as usize);
+        for i in 0..nnodes {
+            for j in (i+1)..nnodes {
+                if rng.gen::<f64>() < p {
+                    if rng.gen::<f64>() < 0.5 {
+                        g.add_edge(i,j);
+                    } else {
+                        g.add_edge(j,i);
+                    }
+                }
+            }
+        }
+        return g;
+    }
+
     fn subgraph<G: DirectedGraph>(ori: &G, vertices: &[Node]) -> Self {
         // macht komische dinge wenn Vertices in dem Slice doppelt vorkommen
         // FIXME?
@@ -68,6 +85,7 @@ pub trait DirectedGraphNew: DirectedGraph + Sized {
         }
         return sub;
     }
+
     fn copy<G: DirectedGraph>(g: &G) -> Self {
         let mut n = Self::new_disconnected(g.nnodes());
         for [a,b] in g.edges() {
@@ -158,7 +176,7 @@ impl<G: DirectedGraph> DirectedGraphExt for G {}
 type Chunk = u64;
 const CHUNK_SIZE: usize = Chunk::BITS as usize;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EdgeMapGraph{
     nnodes: usize,
     edges: IndexSet<Edge>,
