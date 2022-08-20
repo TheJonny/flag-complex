@@ -133,7 +133,19 @@ pub trait DirectedGraphExt: DirectedGraph {
             x.push(v);
         }
     }
-    
+
+    fn undirected_edges(&self) -> Vec<Edge> {
+        let mut undirected_edges = self.edges();
+        for e in &mut undirected_edges {
+            let a = max(e[0], e[1]);
+            let b = min(e[0], e[1]);
+            *e = [a, b];
+        }
+        undirected_edges.sort_unstable();
+        undirected_edges.dedup();
+        return undirected_edges;
+    }
+
     fn flagser_count(&self) -> Vec<usize> {
         //crate::flagser::count_unweighted(self.nnodes(), &self.edges())
         complex::count_cells(self)
